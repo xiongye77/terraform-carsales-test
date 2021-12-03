@@ -22,7 +22,9 @@ terraform apply -auto-approve  # this step will create all alb/ec2/ecs/RDS/basti
 
 check following url, they will point to different ECS target group and lambda function 
 https://ssldemo.poc.csnglobal.net/carsales1/
+
 https://ssldemo.poc.csnglobal.net/carsales2/
+
 https://ssldemo.poc.csnglobal.net/lambda/
 
 Remember to run terraform destroy later it will save your cost.
