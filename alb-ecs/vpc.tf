@@ -83,6 +83,8 @@ resource "aws_subnet" "carsales-public-1a" {
   tags = {
     Name        = "CarSales Public Subnet - 1A"
     Terraform   = "True"
+    "kubernetes.io/role/elb" = 1
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
 resource "aws_subnet" "carsales-public-1b" {
@@ -93,6 +95,8 @@ resource "aws_subnet" "carsales-public-1b" {
   tags = {
     Name        = "CarSales Public Subnet - 1B"
     Terraform   = "True"
+    "kubernetes.io/role/elb" = 1
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"   
   }
 }
 
