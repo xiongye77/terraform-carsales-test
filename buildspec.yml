@@ -1,0 +1,25 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+  build:
+    commands:
+      - docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/test_ecr_repo:$CODEBUILD_RESOLVED_SOURCE_VERSION .
+  post_build:
+    commands:
+      # push
+      - docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/test_ecr_repo:$CODEBUILD_RESOLVED_SOURCE_VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/test_ecr_repo:latest
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/test_ecr_repo:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/test_ecr_repo:latest
+      # create new task definition
+      - sed -i -e 's/\r$//' ./create-new-task-def.sh
+      - chmod +x ./create-new-task-def.sh
+      - ./create-new-task-def.sh carsales1
+      - cat taskdef.json
+
+artifacts:
+  files:
+    - 'appspec.yaml'
+    - 'taskdef.json'
