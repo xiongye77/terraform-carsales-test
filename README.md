@@ -12,7 +12,7 @@ terraform init
 terraform apply -auto-approve  # this step will create terraform backend S3 backuet and Dynamodb, you will find result.log in your local directory, it is my job log. 
 cd ..
 
-cd alb-ecs
+
 
 make changes to variable.tf file, change demo_dns_zone variable to one your Route53 zone.
 
