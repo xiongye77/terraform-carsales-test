@@ -12,9 +12,11 @@ resource "aws_s3_bucket" "terraform-up-and-running-state-carsales-code" {
         }
       }
     }
-    lifecycle {
-      prevent_destroy = false
-    }
+    force_destroy = true
+    #lifecycle {
+    #  prevent_destroy = false
+    #}
+
 }
 
 resource "aws_s3_bucket_public_access_block" "private-bucket-public-access-block" {
