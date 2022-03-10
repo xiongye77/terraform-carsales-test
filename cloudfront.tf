@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 resource "aws_wafv2_web_acl" "my_web_acl" {
-  provider  = "aws.wafv2_provider" 
+  provider  = "aws.wafv2_provider"
   name  = "my-web-acl"
   scope = "CLOUDFRONT"
 
@@ -77,10 +77,10 @@ resource "aws_cloudfront_distribution" "distribution" {
     custom_origin_config {
       http_port = 80
       https_port = 443
-      origin_protocol_policy = "http-only"
+      origin_protocol_policy = "https-only"
       origin_ssl_protocols = ["TLSv1.2"]
     }
-    custom_header  { 
+    custom_header  {
       name = "X-Custom-Header"
       value = "random-value-${aws_ssm_parameter.random-httpheader.value}"
     }
@@ -105,14 +105,15 @@ resource "aws_cloudfront_distribution" "distribution" {
     cached_methods   = ["GET", "HEAD"]
     target_origin_id     = "alb"
     #response_headers_policy_id = aws_cloudfront_response_headers_policy.headers_policy.id
-    forwarded_values {
-      query_string = true
-      headers        = ["All"]
-
-      cookies {
-        forward = "all"
-      }
-    }
+    #forwarded_values {
+    #  query_string = true
+    #  headers        = ["All"]
+    #  cookies {
+    #    forward = "all"
+    #  }
+    #}
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.policy2.id
+    cache_policy_id          = data.aws_cloudfront_cache_policy.this.id
     viewer_protocol_policy = "redirect-to-https"
     min_ttl                = 0
     default_ttl            = 3600
@@ -137,7 +138,7 @@ resource "aws_cloudfront_distribution" "distribution" {
     max_ttl                = 31536000
     compress               = true
     viewer_protocol_policy = "redirect-to-https"
-    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.this.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.policy1.id
     cache_policy_id          = data.aws_cloudfront_cache_policy.this.id
   }
 
@@ -150,7 +151,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   viewer_certificate {
     #cloudfront_default_certificate = false
     ssl_support_method = "sni-only"
-    acm_certificate_arn = "${aws_acm_certificate.myapp.arn}" 
+    acm_certificate_arn = "${aws_acm_certificate.myapp.arn}"
     minimum_protocol_version = "TLSv1.2_2018"
   }
 
@@ -234,7 +235,7 @@ provider "aws" {
 
 # This creates an SSL certificate
 resource "aws_acm_certificate" "myapp" {
-  provider          = "aws.acm_provider" 
+  provider          = "aws.acm_provider"
   domain_name       = "${var.demo_dns_name}.${data.aws_route53_zone.public.name}"
   validation_method = "DNS"
   lifecycle {
@@ -285,8 +286,13 @@ data "aws_cloudfront_cache_policy" "this" {
   name = "Managed-CachingOptimized"
 }
 
-data "aws_cloudfront_origin_request_policy" "this" {
+data "aws_cloudfront_origin_request_policy" "policy1" {
   name = "Managed-CORS-S3Origin"
+}
+
+
+data "aws_cloudfront_origin_request_policy" "policy2" {
+  name = "Managed-AllViewer"
 }
 
 resource "null_resource" "s3_objects" {
