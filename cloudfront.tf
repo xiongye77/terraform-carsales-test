@@ -82,7 +82,7 @@ resource "aws_cloudfront_distribution" "distribution" {
     }
     custom_header  {
       name = "X-Custom-Header"
-      value = "random-value-${aws_ssm_parameter.random-httpheader.value}"
+      value = "${aws_ssm_parameter.random-httpheader.value}"
     }
   }
 
@@ -101,28 +101,6 @@ resource "aws_cloudfront_distribution" "distribution" {
   aliases   = ["${var.demo_dns_name}.${data.aws_route53_zone.public.name}"]
 
   default_cache_behavior {
-    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id     = "alb"
-    #response_headers_policy_id = aws_cloudfront_response_headers_policy.headers_policy.id
-    #forwarded_values {
-    #  query_string = true
-    #  headers        = ["All"]
-    #  cookies {
-    #    forward = "all"
-    #  }
-    #}
-    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.policy2.id
-    cache_policy_id          = data.aws_cloudfront_cache_policy.this.id
-    viewer_protocol_policy = "redirect-to-https"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
-
-  }
-
-    ordered_cache_behavior {
-    path_pattern     = "/index.html"
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD", "OPTIONS"]
     target_origin_id = "S3-${var.s3_bucket_name}"
@@ -140,6 +118,45 @@ resource "aws_cloudfront_distribution" "distribution" {
     viewer_protocol_policy = "redirect-to-https"
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.policy1.id
     cache_policy_id          = data.aws_cloudfront_cache_policy.this.id
+
+  }
+
+  ordered_cache_behavior {
+    path_pattern     = "/carsales1/"
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id     = "alb"
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.policy2.id
+    cache_policy_id          = data.aws_cloudfront_cache_policy.this.id
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+  }
+
+  ordered_cache_behavior {
+    path_pattern     = "/carsales2/"
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id     = "alb"
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.policy2.id
+    cache_policy_id          = data.aws_cloudfront_cache_policy.this.id
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+  }
+  ordered_cache_behavior {
+    path_pattern     = "/lambda/"
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id     = "alb"
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.policy2.id
+    cache_policy_id          = data.aws_cloudfront_cache_policy.this.id
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
   }
 
   restrictions {
@@ -165,13 +182,13 @@ resource "aws_cloudfront_origin_access_identity" "www_bucket" {
 
 resource "aws_s3_bucket" "www_bucket" {
   bucket = var.s3_bucket_name
-  acl = "public-read"
+  #acl = "public-read"
   #policy = templatefile("templates/s3-policy.json", { bucket = "www.${var.bucket_name}" })
   force_destroy = true
   cors_rule {
     allowed_headers = ["Authorization", "Content-Length"]
     allowed_methods = ["GET", "POST"]
-    allowed_origins = ["https://{var.s3_bucket_name}"]
+    allowed_origins = ["https://${var.s3_bucket_name}"]
     max_age_seconds = 3000
   }
 
@@ -217,7 +234,7 @@ resource "aws_s3_bucket_public_access_block" "www_bucket" {
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
-  restrict_public_buckets = false
+  restrict_public_buckets = true
 }
 
 
