@@ -35,8 +35,16 @@ variable "environment" {
 }
 
 variable "instance_type_spot" {
-    default = "t2.medium"
+    default = "t2.small"
 
+}
+variable "rds_username" {
+   default = "postgresadmin"
+}
+
+variable "asg_name" {
+  description = "AWS EC2 ASG Name"
+  default = "carsales-ecs-asg"
 }
 
 variable "max_spot_instances" {
@@ -48,20 +56,20 @@ variable "min_spot_instances" {
     default = 1
 
 }
-# Make sure your bid price is enough. 
+# Make sure your bid price is enough.
 variable "spot_bid_price"  {
     default = "0.03"
 
 }
 variable "demo_dns_zone" {
-  description = "Specific to your setup, pick a domain you have in route53"
+  description = "Specific to your setup, pick a public domain you have in route53, this must be changed. check output of aws route53 list-hosted-zones"
   default = "poc.csnglobal.net"
 
 }
 
 
 variable "demo_dns_name" {
-  description = "Just a demo domain name"
+  description = " A demo domain name for the web access"
   default     = "ssldemo"
 }
 
