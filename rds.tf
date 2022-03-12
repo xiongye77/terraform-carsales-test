@@ -48,7 +48,7 @@ resource "aws_db_instance" "carsales-db" {
   engine                  = "postgres"
   engine_version          = "12.9"
   multi_az                = "true"
-  terraform-carsales-test = "30" # interval of Enhanced Monitoring metrics are collected for the DB instance
+  monitoring_interval = "30" # interval of Enhanced Monitoring metrics are collected for the DB instance
   instance_class          = "db.t3.large"
   name                    = "carsalesdb"
   # Set the secrets from AWS Secrets Manager
