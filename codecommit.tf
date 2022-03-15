@@ -7,7 +7,6 @@ resource "aws_codecommit_repository" "demo" {
 resource "null_resource" "codecommit_push" {
   depends_on =[aws_codecommit_repository.demo]
   provisioner "local-exec" {
-    command = "./codecommit_push.sh"
+    command = "chmod +x ./codecommit_push.sh;./codecommit_push.sh"
   }
 }
-
