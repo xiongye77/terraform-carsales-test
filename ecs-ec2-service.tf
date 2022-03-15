@@ -25,26 +25,36 @@ resource "aws_security_group" "ecs" {
   }
 }
 
-resource "aws_launch_configuration" "ecs" {
+resource "aws_launch_template" "ecs" {
   depends_on =[aws_ssm_parameter.cloudwatch-linux-mem]
-  name                        = "${var.ecs_cluster_name}-cluster"
-  image_id                    =  data.aws_ami.aws_optimized_ecs.id 
+  name                        = "${var.ecs_cluster_name}-lt"
+  image_id                    =  data.aws_ami.aws_optimized_ecs.id
   #image_id                    = data.aws_ami.ecs.id  aws ssm get-parameters --names /aws/service/ecs/optimized-ami/amazon-linux-2/recommended
   instance_type               = var.instance_type_spot
-  spot_price                  = var.spot_bid_price
-  security_groups             = [aws_security_group.ecs.id]
-  iam_instance_profile        = aws_iam_instance_profile.ecs.name
+  #spot_price                  = var.spot_bid_price
+  #security_groups             = [aws_security_group.ecs.id]
+  iam_instance_profile   {
+    name = aws_iam_instance_profile.ecs.name
+  }
+  network_interfaces {
+  security_groups = [aws_security_group.ecs.id]
+  }
   key_name                    = aws_key_pair.carsales_ecs_public_key.key_name
-  user_data                   = <<EOF
+  user_data                   = "${base64encode(<<EOF
    #!/bin/bash
    echo ECS_CLUSTER='${var.ecs_cluster_name}-cluster' > /etc/ecs/ecs.config
    sudo yum install amazon-cloudwatch-agent -y
    sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c ssm:cloudwatch-linux-mem
   EOF
+  )}"
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
+
 resource "aws_autoscaling_group" "ecs-cluster" {
-  name                 = "${var.ecs_cluster_name}_auto_scaling_group"
+  name                 = "${var.asg_name}"
   termination_policies = [
      "OldestInstance" # When a “scale down” event occurs, which instances to kill first?
   ]
@@ -54,12 +64,28 @@ resource "aws_autoscaling_group" "ecs-cluster" {
   min_size                  = var.min_spot_instances
   desired_capacity          = var.min_spot_instances
   health_check_type    = "EC2"
-  launch_configuration = aws_launch_configuration.ecs.name
-  vpc_zone_identifier  = [aws_subnet.carsales-private-1a.id, aws_subnet.carsales-private-1b.id]
+  launch_template {
+    id      = aws_launch_template.ecs.id
+    version = "$Latest"
+    #version = aws_launch_template.ecs.latest_version
+  }
 
-   tag {
-    key                 = "Name"
-    value               = "asg-${var.ecs_cluster_name}"
+  vpc_zone_identifier  = [aws_subnet.carsales-private-1a.id, aws_subnet.carsales-private-1b.id]
+  lifecycle {
+    create_before_destroy = true
+  }
+  instance_refresh {
+    strategy = "Rolling"
+    #enabled = true
+    preferences {
+      // You probably want more than 50% healthy depending on how much headroom you have
+      min_healthy_percentage = 0
+   }
+   triggers = ["tag"]
+  }
+  tag {
+    key                 = "launch_template_version"
+    value               = "${aws_launch_template.ecs.latest_version}"
     propagate_at_launch = "true"
   }
 }
@@ -113,8 +139,8 @@ resource "aws_cloudwatch_metric_alarm" "memory-high" {
         "${aws_autoscaling_policy.ecs-cluster-mem-scale-out.arn}"
     ]
     dimensions = {
-          AutoScalingGroupName = "${aws_autoscaling_group.ecs-cluster.name}" 
-     
+          AutoScalingGroupName = "${aws_autoscaling_group.ecs-cluster.name}"
+
     }
 }
 
@@ -236,7 +262,7 @@ DEFINITION
       file_system_id = aws_efs_file_system.efs_volume.id
       root_directory = "/"
     }
-  } 
+  }
 }
 
 #data "template_file" "carsales2" {
@@ -323,7 +349,7 @@ resource "aws_ecs_service" "carsales-commerical-service"{
   desired_count   = 1
   network_configuration {
    subnets = [aws_subnet.carsales-private-1a.id, aws_subnet.carsales-private-1b.id]
-   security_groups = [aws_security_group.ecs.id] 
+   security_groups = [aws_security_group.ecs.id]
    assign_public_ip = false
   }
   load_balancer {
@@ -372,4 +398,3 @@ resource "aws_appautoscaling_policy" "carsales-dealer_to_target_cpu" {
     target_value = 80
   }
 }
-
