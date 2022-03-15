@@ -57,7 +57,6 @@ resource "aws_db_instance" "carsales-db" {
   identifier              = "carsales-db"
   skip_final_snapshot     = "true"
   publicly_accessible    = "false"
-  monitoring_interval = "30"   # interval for collecting Enhanced Monitoring metrics
   performance_insights_enabled = true
   performance_insights_retention_period = 7
   backup_retention_period = "1"
