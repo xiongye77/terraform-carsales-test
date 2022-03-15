@@ -1,3 +1,6 @@
+![image](https://user-images.githubusercontent.com/36766101/158346422-1bc11405-1d5a-4639-97b3-cb8e68f1f205.png)
+
+
 Before you begin, make sure you configure .aws/config and .aws/credentials file with aws_access_key_id and aws_secret_access_key
 Run aws sts get-caller-identity and  aws iam get-user make sure user has enough IAM role to perform the operation.
 
