@@ -24,6 +24,9 @@ terraform init  # the default regin is Sydney ap-southeast-2 which defined in va
 terraform apply -auto-approve  # this step will create all alb/ec2/ecs/RDS/bastion host/nat gateway/EFS/SSM/Secret manager....you will find result.log in your local directory, it is my job log. the output will be alb url 
 
 check following url, they will point to different ECS target group and lambda function 
+
+https://ssldemo.poc.csnglobal.net/index.html
+
 https://ssldemo.poc.csnglobal.net/carsales1/
 
 https://ssldemo.poc.csnglobal.net/carsales2/
