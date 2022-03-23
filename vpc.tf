@@ -44,9 +44,10 @@ resource "aws_internet_gateway" "carsales-igw" {
 }
 # CREATE ELASTIC IP ADDRESS FOR NAT GATEWAY
 
-  resource "aws_eip" "carsales-nat1" {
+resource "aws_eip" "carsales-nat1" {
 }
-  resource "aws_eip" "carsales-nat2" {
+
+resource "aws_eip" "carsales-nat2" {
 }
   
 
