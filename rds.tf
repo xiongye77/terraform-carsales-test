@@ -38,6 +38,34 @@ resource "aws_db_subnet_group" "carsales-db-subnet" {
   }
 }
 
+
+# IAM Role Definition for RDS Enhanced Monitoring
+data "aws_iam_policy_document" "rds-assume-role-policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["monitoring.rds.amazonaws.com"]
+    }
+  }
+}
+
+# Create RDS Enhanced Monitoring role
+resource "aws_iam_role" "rds_monitoring_iam_role" {
+  name               = "RDS-monitor"
+  path               = "/"
+  assume_role_policy = "${data.aws_iam_policy_document.rds-assume-role-policy.json}"
+}
+
+# Attach RDS Enhanced Monitoring role policy(ies)
+resource "aws_iam_role_policy_attachment" "rds_monitoring_all_iam_role_policies_attach" {
+    role       = "${aws_iam_role.rds_monitoring_iam_role.id}"
+    policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
+
+
+
 # Create CarSales Database Instance
 
 resource "aws_db_instance" "carsales-db" {
@@ -49,6 +77,7 @@ resource "aws_db_instance" "carsales-db" {
   engine_version          = "12.9"
   multi_az                = "true"
   monitoring_interval = "30" # interval of Enhanced Monitoring metrics are collected for the DB instance
+  monitoring_role_arn         = "${aws_iam_role.rds_monitoring_iam_role.arn}"
   instance_class          = "db.t3.large"
   name                    = "carsalesdb"
   # Set the secrets from AWS Secrets Manager
