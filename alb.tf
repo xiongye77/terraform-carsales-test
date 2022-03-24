@@ -103,7 +103,7 @@ resource "aws_lb_listener_rule" "carsales_test1_http" {
     condition {
       http_header {
         http_header_name = "X-Custom-Header"
-        values = ["random-value-${aws_ssm_parameter.random-httpheader.value}"]
+        values = ["${aws_ssm_parameter.random-httpheader.value}"]
      }
    }
 }
@@ -125,7 +125,7 @@ resource "aws_lb_listener_rule" "carsales_test2_http" {
     condition {
       http_header {
         http_header_name = "X-Custom-Header"
-        values = ["random-value-${aws_ssm_parameter.random-httpheader.value}"]
+        values = ["${aws_ssm_parameter.random-httpheader.value}"]
      }
    }
 
@@ -147,7 +147,7 @@ resource "aws_lb_listener_rule" "carsales_test3_http" {
   condition {
       http_header {
         http_header_name = "X-Custom-Header"
-        values = ["random-value-${aws_ssm_parameter.random-httpheader.value}"]
+        values = ["${aws_ssm_parameter.random-httpheader.value}"]
      }
    }
 }
